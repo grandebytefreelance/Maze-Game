@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maze Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: sans-serif;
+      height: 100vh;
+      background-color: #f0f0f0;
+    }
+    #maze-container {
+      display: grid;
+      grid-template-columns: repeat(10, 30px);
+      grid-template-rows: repeat(10, 30px);
+      gap: 2px;
+      margin-top: 10px;
+    }
+    .cell {
+      width: 30px;
+      height: 30px;
+      background-color: white;
+      border: 1px solid #ccc;
+    }
+    .wall {
+      background-color: #333;
+    }
+    .mouse {
+      background-color: blue;
+    }
+    .cheese {
+      background-color: gold;
+    }
+    #controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 400px;
+      margin-top: 20px;
+      padding: 10px;
+    }
+    #timer {
+      font-size: 1.2em;
+    }
+    #reset-btn {
+      padding: 8px 16px;
+      font-size: 1em;
+    }
+    #arrows {
+      display: grid;
+      grid-template-columns: repeat(3, 40px);
+      grid-template-rows: repeat(3, 40px);
+      gap: 4px;
+    }
+    .arrow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #ddd;
+      border: 1px solid #aaa;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
+    .arrow:active {
+      background-color: #bbb;
+    }
+    @media (max-width: 500px) {
+      #maze-container {
+        transform: scale(0.8);
+      }
+      #controls {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>Maze Game</h2>
+  <div id="maze-container"></div>
+  <div id="controls">
+    <div id="timer">Time: 0</div>
+    <button id="reset-btn">Restart</button>
+    <div id="arrows">
+      <div></div>
+      <div class="arrow" onclick="move('up')">⬆</div>
+      <div></div>
+      <div class="arrow" onclick="move('left')">⬅</div>
+      <div></div>
+      <div class="arrow" onclick="move('right')">➡</div>
+      <div></div>
+      <div class="arrow" onclick="move('down')">⬇</div>
+      <div></div>
+    </div>
+  </div>
+  <script>
+    const mazeContainer = document.getElementById('maze-container');
+    const timerEl = document.getElementById('timer');
+    const resetBtn = document.getElementById('reset-btn');
+    const size = 10;
+    let maze = [];
+    let mouse = { x: 0, y: 0 };
+    let cheese = { x: size - 1, y: size - 1 };
+    let time = 0;
+    let timer;
+
+    function createMaze() {
+      maze = [];
+      for (let y = 0; y < size; y++) {
+        const row = [];
+        for (let x = 0; x < size; x++) {
+          row.push(Math.random() < 0.2 ? 1 : 0); // 1: wall, 0: path
+        }
+        maze.push(row);
+      }
+      maze[0][0] = 0;
+      maze[size - 1][size - 1] = 0;
+    }
+
+    function drawMaze() {
+      mazeContainer.innerHTML = '';
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (maze[y][x] === 1) cell.classList.add('wall');
+          if (mouse.x === x && mouse.y === y) cell.classList.add('mouse');
+          if (cheese.x === x && cheese.y === y) cell.classList.add('cheese');
+          mazeContainer.appendChild(cell);
+        }
+      }
+    }
+
+    function move(dir) {
+      const dx = { left: -1, right: 1, up: 0, down: 0 }[dir];
+      const dy = { left: 0, right: 0, up: -1, down: 1 }[dir];
+      const newX = mouse.x + dx;
+      const newY = mouse.y + dy;
+      if (newX >= 0 && newX < size && newY >= 0 && newY < size && maze[newY][newX] === 0) {
+        mouse.x = newX;
+        mouse.y = newY;
+        drawMaze();
+        if (mouse.x === cheese.x && mouse.y === cheese.y) {
+          clearInterval(timer);
+          alert(`Congratulations! Time: ${time} seconds`);
+        }
+      }
+    }
+
+    function startGame() {
+      createMaze();
+      mouse = { x: 0, y: 0 };
+      cheese = { x: size - 1, y: size - 1 };
+      drawMaze();
+      time = 0;
+      timerEl.textContent = `Time: ${time}`;
+      clearInterval(timer);
+      timer = setInterval(() => {
+        time++;
+        timerEl.textContent = `Time: ${time}`;
+      }, 1000);
+    }
+
+    resetBtn.addEventListener('click', startGame);
+    startGame();
+  </script>
+</body>
+</html>
